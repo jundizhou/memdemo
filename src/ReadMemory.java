@@ -25,14 +25,11 @@ public class ReadMemory {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        mapBuf.position(3);
     }
 
     public void clearBuffer() {
-        // 清除文件内容
-        for (int i = 0; i < fileSize; i++) {
-            mapBuf.put(i, (byte) 0);
-        }
-        mapBuf.position(0);
+        mapBuf.position(3);
     }
 
 
@@ -61,8 +58,10 @@ public class ReadMemory {
     }
 
     public void getBuffer() throws Exception{
-        //mapBuf.put(0,(byte)2);
+        mapBuf.put(0,(byte)2);
+
         while (mapBuf.hasRemaining()) {
+            System.out.println("pos:"+mapBuf.position());
             int length = mapBuf.getInt(); // 读取数据长度元数据
             if(length == 0){
                 break;
@@ -72,7 +71,9 @@ public class ReadMemory {
             mapBuf.get(readData); // 读取实际数据
             System.out.println(new String(readData)); // 输出数据
         }
-        //mapBuf.put(0,(byte)0);
+        mapBuf.put(1,(byte)1);
+        this.clearBuffer();
+        mapBuf.put(0,(byte)0);
     }
 
     public boolean getLock() {
@@ -95,7 +96,6 @@ public class ReadMemory {
         readMemory.initMemFile("shm.lock",  8 * 1024 * 1024);
         while (true) {
             readMemory.readMemFile();
-            readMemory.clearBuffer();
             Thread.sleep(5000);
         }
 

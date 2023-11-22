@@ -27,6 +27,7 @@ public class WriteMemory {
         for (int i = 0; i < size; i++) {
             mapBuf.put(i, (byte) 0);
         }
+        mapBuf.position(3);
         fileSize = size;
         return true;
     }
@@ -54,18 +55,35 @@ public class WriteMemory {
         return "ok";
     }
 
+    public void clearBuffer() {
+        // 清除文件内容
+        for (int i = 0; i < fileSize; i++) {
+            mapBuf.put(i, (byte) 0);
+        }
+        mapBuf.position(3);
+    }
 
-    // index = 0为标志位，0为空闲，1为正在写，2为正在读。预留,如果后续tryFileLock性能不行可以用此标志位来控制并发读写
+    // index = 0为lock位，0为空闲，1为正在写，2为正在读
+    // index = 1为写清理位，0为不需要清理，1为需要清理
+    // index = 2为读清理位，0为不需要清理，1为需要清理
     public void putBuffer(int length, byte[] content){
         if(currentIndex+length>=fileSize) {
             System.out.println("drop event!");
             return;
         }
-        //mapBuf.put(0, (byte) 1);
+        System.out.println("pos:"+mapBuf.position());
+        mapBuf.put(0, (byte) 1);
+
+        if(mapBuf.get(1) == 1) {
+            clearBuffer();
+            System.out.println("clear!");
+            mapBuf.put(1, (byte)0);
+        }
+
         mapBuf.putInt(length);
         mapBuf.put(content);
         currentIndex = currentIndex + length;
-        //mapBuf.put(0, (byte) 0);
+        mapBuf.put(0, (byte) 0);
     }
 
 
